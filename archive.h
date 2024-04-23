@@ -2,7 +2,6 @@
 #include <stdlib.h>       //mallocs, callocs, frees and the like
 #include <stdio.h>        //printing! :D, mostly for debugging and error reports
 #include <string.h>       //memsets, memcpys and other memory shenanigans
-#include <openssl/md5.h>	//MD5 hashing is fun
 
 /*struct that stores an archive. Brief description of its member fields:
   size  ->  number of chat messages in the archive
