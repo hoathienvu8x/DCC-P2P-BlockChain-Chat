@@ -1,24 +1,24 @@
-#include <stdio.h>	//for printing debug info
-#include <stdlib.h>	//mallocs, frees and whatnot
-#include <stdint.h>	//portable size types (uint8_t, uint32_t, etc)
+#include <stdio.h>  //for printing debug info
+#include <stdlib.h>  //mallocs, frees and whatnot
+#include <stdint.h>  //portable size types (uint8_t, uint32_t, etc)
 
 /*struct that represents a node in a list of connected peers, we store IPs as
  4 byte unsigned integers for faster comparison. This is safe because all IPs
  are guaranteed to be IPv4. We also store the socket associated with that peer,
  so we can broadcast messages by iterating across the list*/
 struct node {
-	uint32_t ip;
+  uint32_t ip;
   uint32_t sock;
-	struct node *next;
+  struct node *next;
 };
 
 /*struct that represents an entire list of peers, with pointers to first and
   last nodes, size (in number of nodes) and string representation, for faster
   message building*/
 struct peer_list {
-	struct node *head, *last;
-	uint32_t size;
-	uint8_t *str;
+  struct node *head, *last;
+  uint32_t size;
+  uint8_t *str;
 };
 
 /*Recomputes the list's string representation, to update connected peers after
