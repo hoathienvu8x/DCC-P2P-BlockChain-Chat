@@ -7,21 +7,17 @@ CFLAGS=-std=gnu99 -Wall -Wextra
 #This should work for most Linux distros, I think
 LIBFLAGS=-lpthread
 
+OBJECTS = peerlist.o archive.o bignum.o rsa.o
+
 #Actual target rules
 all: blockchain
 
-blockchain: main.o peerlist.o archive.o
-	gcc main.o peerlist.o archive.o -o blockchain $(LIBFLAGS)
+blockchain: main.o $(OBJECTS)
+	gcc main.o $(OBJECTS) -o blockchain $(LIBFLAGS)
 	rm -rf *.o
 
-main.o: main.c
-	gcc -c $(CFLAGS) main.c
-
-peerlist.o: peerlist.c
-	gcc -c $(CFLAGS) peerlist.c
-
-archive.o: archive.c
-	gcc -c $(CFLAGS) archive.c
+%.o: %.c
+	gcc -c $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o blockchain*
+	rm -rf $(OBJECTS) blockchain
