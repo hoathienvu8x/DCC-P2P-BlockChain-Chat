@@ -12,6 +12,7 @@ all: blockchain
 
 blockchain: main.o peerlist.o archive.o
 	gcc main.o peerlist.o archive.o -o blockchain $(LIBFLAGS)
+	rm -rf *.o
 
 main.o: main.c
 	gcc -c $(CFLAGS) main.c
