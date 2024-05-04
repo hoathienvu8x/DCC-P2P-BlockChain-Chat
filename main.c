@@ -67,7 +67,9 @@ int init_peer_socket (char *ip) {
 
     /*set socket to non-blocking, then initiate connection attempt*/
     fcntl(sock, F_SETFL, O_NONBLOCK);
-    connect(sock, aux->ai_addr, aux->ai_addrlen);
+    if(connect(sock, aux->ai_addr, aux->ai_addrlen) < 0) {
+      continue;
+    }
 
     /*create a select set with our socket in it, and configure 500ms timeout*/
     fd_set fdset;
