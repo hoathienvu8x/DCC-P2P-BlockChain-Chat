@@ -1,11 +1,3 @@
-#Get Operating System, because MacOS doesn't link/include OpenSSL by default
-#We assume it is installed in the default /usr/local/opt/openssl/ folder, if
-#not then I guess whoever is compiling would have to change it :)
-UNAME := $(shell uname -s)
-
-#We have no special rules for Windows because... well, who's gonna run this on
-#Windows anyway?
-
 #Compile with some extra warnings, no -pedantic because we don't hate ourselves
 CFLAGS=-c -Wall -Wextra
 
