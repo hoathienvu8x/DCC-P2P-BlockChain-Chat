@@ -1,4 +1,5 @@
 #include "archive.h"
+#include <ctype.h>
 // https://github.com/Zunawe/md5-c/blob/main/md5.c
 /*
  * Derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm
@@ -193,6 +194,55 @@ static void MD5(uint8_t * input, size_t len, uint8_t * result) {
   md5_finalize(&ctx);
   memcpy(result, ctx.digest, 16);
 }
+#define IS_CONT(b) (((unsigned char)(b) & 0xC0) == 0x80)
+static int num_bytes_in_utf8_sequence(unsigned char c) {
+  if (c == 0xC0 || c == 0xC1 || c > 0xF4 || IS_CONT(c)) return 0;
+  if ((c & 0x80) == 0) return 1;
+  if ((c & 0xE0) == 0xC0) return 2;
+  if ((c & 0xF0) == 0xE0) return 3;
+  if ((c & 0xF8) == 0xF0) return 4;
+  return 0;
+}
+static int verify_utf8_sequence(const unsigned char * str, int * len) {
+  unsigned int cp = 0;
+  *len = num_bytes_in_utf8_sequence(str[0]);
+  if (*len == 1) {
+    cp = str[0];
+  } else if (*len == 2 && IS_CONT(str[1])) {
+    cp = str[0] & 0x1f;
+    cp = (cp << 6) | (str[1] & 0x3f);
+  } else if (*len == 3 && IS_CONT(str[1]) && IS_CONT(str[2])) {
+    cp = ((unsigned char)str[0]) & 0xf;
+    cp = (cp << 6) | (str[1] & 0x3f);
+    cp = (cp << 6) | (str[2] & 0x3f);
+  } else if (*len == 4 && IS_CONT(str[1]) && IS_CONT(str[2]) && IS_CONT(str[3])) {
+    cp = str[0] & 0x7;
+    cp = (cp << 6) | (str[1] & 0x3f);
+    cp = (cp << 6) | (str[2] & 0x3f);
+    cp = (cp << 6) | (str[3] & 0x3f);
+  } else {
+    return -1;
+  }
+  if ((cp < 0x80 && *len > 1) || (cp < 0x800 && *len > 2) || (cp < 0x10000 && *len > 3)) {
+    return -1;
+  }
+  if (cp > 0x10FFFF) return -1;
+  if (cp >= 0xD800 && cp <= 0xDFFF) return -1;
+  return 0;
+}
+
+static int is_valid_utf8(const char * str, size_t len) {
+  int bytes = 0;
+  const char * end = str + len;
+  while (str < end) {
+    if (verify_utf8_sequence((const unsigned char *)str, &bytes) != 0) {
+      return -1;
+    }
+    str += bytes;
+  }
+  return 0;
+}
+
 /*This file implements all the data structures and operations related to the
   chat archive. This means the structure that stores an archive, as well as the
   operations related to changing it. It also contains all the operations related
@@ -203,23 +253,19 @@ static void MD5(uint8_t * input, size_t len, uint8_t * result) {
   invalid strings (empty or containing illegal characters)*/
 int parse_message (uint8_t *msg) {
   int count = 0;
-
+  uint8_t * p = msg;
   /*iterate over characters in string, validating (and counting) each*/
-  while (*msg) {
-    /*newline=end of message, don't increment count, it's not part of payload*/
-    if (*msg == 10) {
-      break;
-    }
-
-    /*illegal characters*/
-    if (*msg < 32 || *msg > 126) {
-      return 0;
-    }
-
+  while (*p) {
     count++;
-    msg++;
+    p++;
   }
-
+  p = msg + count - 1;
+  while (isspace(*p)) {
+    *p = '\0';
+    count--;
+    p--;
+  }
+  if (is_valid_utf8((const char *)msg, count) < 0) return 0;
   return count;
 }
 
