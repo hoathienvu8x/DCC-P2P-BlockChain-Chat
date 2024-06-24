@@ -4,6 +4,7 @@
 
 /*port is always 51511*/
 #define TCP_PORT "51511"
+#define MESSAGE_LENGTH (256)
 
 /*enum for message types, to make message treatment code clearer*/
 enum {
@@ -257,10 +258,10 @@ void process_archive (int peersock, FILE *logfile) {
 
   /*now iterate over every message in the archive*/
   unsigned int i;
-  uint8_t codes[32], msg[256], msglen;
+  uint8_t codes[32], msg[MESSAGE_LENGTH], msglen;
   for (i = 0; i < usize; i++) {
     /*read message from socket*/
-    memset(msg, 0, 256);
+    memset(&msg, 0, sizeof(msg));
     recv(peersock, &msglen, 1, MSG_WAITALL);
     recv(peersock, msg, msglen, MSG_WAITALL);
     recv(peersock, codes, 32, MSG_WAITALL);
@@ -540,11 +541,11 @@ int main(int argc, char *argv[]) {
 
   /*prompt the user for messages to add to archive*/
   while(1) {
-    uint8_t msg[256];
+    uint8_t msg[MESSAGE_LENGTH];
 
-    memset(msg, 0, 256);
-    fprintf(stdout, "Input a chat message to send (255 chars max):\n");
-    fgets((char*)msg, 256, stdin);
+    memset(&msg, 0, sizeof(msg));
+    fprintf(stdout, "Input a chat message to send (%d chars max):\n", MESSAGE_LENGTH - 1);
+    fgets((char*)msg, MESSAGE_LENGTH, stdin);
 
     /*we'll write to the archive, so writelock it*/
     pthread_rwlock_wrlock(&archive_lock);
