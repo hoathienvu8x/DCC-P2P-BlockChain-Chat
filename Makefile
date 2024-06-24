@@ -2,10 +2,6 @@
 #We assume it is installed in the default /usr/local/opt/openssl/ folder, if
 #not then I guess whoever is compiling would have to change it :)
 UNAME := $(shell uname -s)
-ifeq ($(UNAME), Darwin)
-	SSLINCLUDE = -I/usr/local/opt/openssl/include
-	SSLLIB = -L/usr/local/opt/openssl/lib
-endif
 
 #We have no special rules for Windows because... well, who's gonna run this on
 #Windows anyway?
@@ -14,22 +10,22 @@ endif
 CFLAGS=-c -Wall -Wextra
 
 #This should work for most Linux distros, I think
-LIBFLAGS=-lpthread -lcrypto
+LIBFLAGS=-lpthread
 
 #Actual target rules
 all: blockchain
 
 blockchain: main.o peerlist.o archive.o
-	gcc $(SSLLIB) main.o peerlist.o archive.o -o blockchain $(LIBFLAGS)
+	gcc main.o peerlist.o archive.o -o blockchain $(LIBFLAGS)
 
 main.o: main.c
-	gcc $(SSLINCLUDE) $(CFLAGS) main.c
+	gcc $(CFLAGS) main.c
 
 peerlist.o: peerlist.c
 	gcc $(CFLAGS) peerlist.c
 
 archive.o: archive.c
-	gcc  $(SSLINCLUDE) $(CFLAGS) archive.c
+	gcc $(CFLAGS) archive.c
 
 clean:
 	rm *.o blockchain*

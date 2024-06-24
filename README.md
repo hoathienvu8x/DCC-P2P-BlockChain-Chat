@@ -13,7 +13,7 @@ Extreme level of commenting, because it's a university assignment, so why not.
 # Building #
 
 To build, simply run "make", the Makefile target rules should work for most
-Linux distributions as well as MacOS, as long as OpenSSL is installed.
+Linux distributions as well as MacOS, ~~as long as OpenSSL is installed~~.
 
 
 NOTE: MUST be compiled with gcc for 64 bit architectures, since we use a few
