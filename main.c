@@ -507,12 +507,11 @@ int main(int argc, char *argv[]) {
    public IP address for the local device*/
   if (argc != 3) {
     fprintf(stderr, "Usage: ./blockchain <ip/hostname> <public IP>\n");
-    return 0;
   }
-
+  const char * public_ip = argc > 2 ? argv[2] : "0.0.0.0";
   /*get int representation for public IP and store it, to avoid self-connect*/
   struct in_addr testing;
-  inet_aton(argv[2], &testing);
+  inet_aton(public_ip, &testing);
   myaddr = testing.s_addr;
 
   /*initialize our peer list structure and its mutex variable*/
@@ -526,17 +525,18 @@ int main(int argc, char *argv[]) {
   /*first thing we do is start a thread to accept incoming connections*/
   pthread_t incoming_thread;
   pthread_create(&incoming_thread, NULL, incoming_peers_thread, NULL);
+  if (argc > 1) {
+    /*now init a socket for the first peer and launch threads to talk to them*/
+    int sock = init_peer_socket(argv[1]);
+    if (sock == -1) {
+      fprintf(stderr, "Failed to connect to initial peer!\n");
+    }
 
-  /*now init a socket for the first peer and launch threads to talk to them*/
-  int sock = init_peer_socket(argv[1]);
-  if (sock == -1) {
-    fprintf(stderr, "Failed to connect to initial peer!\n");
-  }
-
-  else {
-    pthread_t reqthread, recvthread;
-    pthread_create(&reqthread, NULL, peer_requester_thread, &sock);
-    pthread_create(&recvthread, NULL, peer_receiver_thread, &sock);
+    else {
+      pthread_t reqthread, recvthread;
+      pthread_create(&reqthread, NULL, peer_requester_thread, &sock);
+      pthread_create(&recvthread, NULL, peer_receiver_thread, &sock);
+    }
   }
 
   /*prompt the user for messages to add to archive*/
